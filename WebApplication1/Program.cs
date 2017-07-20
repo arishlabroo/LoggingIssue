@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using StructureMap;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
@@ -21,31 +20,16 @@ namespace WebApplication1
 
     public class Startup
     {
-        //Uncomment this line and logging starts working again.
-        //public void ConfigureServices(IServiceCollection services) => services.AddMvc();
-
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            var container = new Container();
-            container.Configure(config =>
-            {
-                config.For<IAmAInterface>().Use<Implementation>();
-                config.Populate(services);
-            });
-            return container.GetInstance<IServiceProvider>();
+
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<Implementation>().As<IAmAInterface>();
+            containerBuilder.Populate(services);
+            var container = containerBuilder.Build();
+            return new AutofacServiceProvider(container);
         }
-
-        //public IServiceProvider ConfigureServices(IServiceCollection services)
-        //{
-        //    services.AddMvc();
-
-        //    var containerBuilder = new ContainerBuilder();
-        //    containerBuilder.RegisterType<Implementation>().As<IAmAInterface>();
-        //    containerBuilder.Populate(services);
-        //    var container = containerBuilder.Build();
-        //    return new AutofacServiceProvider(container);
-        //}
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env) => app.UseMvc();
     }
@@ -65,7 +49,6 @@ namespace WebApplication1
         public async Task<IEnumerable<string>> Get()
         {
             var something = await dependency.Something();
-            //NO LOGGERS CONFIGURED
             logger.LogError(something);
             return new string[] { "value1", "value2" };
         }
