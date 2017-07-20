@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 
 namespace WebApplication1
 {
@@ -25,9 +28,24 @@ namespace WebApplication1
         {
             services.AddMvc();
             var container = new Container();
-            container.Configure(config => config.Populate(services));
+            container.Configure(config =>
+            {
+                config.For<IAmAInterface>().Use<Implementation>();
+                config.Populate(services);
+            });
             return container.GetInstance<IServiceProvider>();
         }
+
+        //public IServiceProvider ConfigureServices(IServiceCollection services)
+        //{
+        //    services.AddMvc();
+
+        //    var containerBuilder = new ContainerBuilder();
+        //    containerBuilder.RegisterType<Implementation>().As<IAmAInterface>();
+        //    containerBuilder.Populate(services);
+        //    var container = containerBuilder.Build();
+        //    return new AutofacServiceProvider(container);
+        //}
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env) => app.UseMvc();
     }
@@ -36,17 +54,34 @@ namespace WebApplication1
     public class ValuesController : Controller
     {
         private readonly ILogger<ValuesController> logger;
+        private readonly IAmAInterface dependency;
 
-        public ValuesController(ILogger<ValuesController> logger)
+        public ValuesController(ILogger<ValuesController> logger, IAmAInterface dependency)
         {
             this.logger = logger;
+            this.dependency = dependency;
         }
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IEnumerable<string>> Get()
         {
+            var something = await dependency.Something();
             //NO LOGGERS CONFIGURED
-            logger.LogError("Charlie Charlie");
+            logger.LogError(something);
             return new string[] { "value1", "value2" };
+        }
+    }
+
+    public interface IAmAInterface
+    {
+        Task<string> Something();
+    }
+
+    public class Implementation : IAmAInterface
+    {
+        public async Task<string> Something()
+        {
+            await Task.CompletedTask;
+            return "Charlie";
         }
     }
 }
