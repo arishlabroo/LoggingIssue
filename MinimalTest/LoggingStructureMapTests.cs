@@ -40,8 +40,7 @@ namespace MinimalTest
         public void WithStructureMap_LogNeverCalled()
         {
             var container = new Container(c => { c.Populate(_services); });
-            var serviceProvider = container.GetInstance<IServiceProvider>();
-            var logger = serviceProvider.GetService<ILogger<Foo>>();
+            var logger = container.GetInstance<ILogger<Foo>>();
 
             logger.LogCritical("Hello");
 
