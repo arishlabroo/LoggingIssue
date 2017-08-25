@@ -22,7 +22,7 @@ namespace MinimalTest
             _mockLoggerProvider.Setup(p => p.CreateLogger(It.IsAny<string>())).Returns(_mockLogger.Object);
 
             _services = new ServiceCollection();
-            _services.AddLogging(b => { b.AddProvider(_mockLoggerProvider.Object); });
+            _services.AddLogging(builder => { builder.AddProvider(_mockLoggerProvider.Object); });
         }
 
         [Fact]
